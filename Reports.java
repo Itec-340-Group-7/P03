@@ -1,11 +1,8 @@
+
 package connection;
 
 import java.sql.*;
-/**
- * Steven Horton
- * Austin Crockett
- * Colin Ryan
- */
+
 public class Reports {
     DataSource dataSource;
     Connection newCon;
@@ -115,6 +112,7 @@ public class Reports {
                     + "WHERE cr.TID = " +i + " and p.mid = ca.mid "
                     +"group by cr.rid, cr.name, cr.unit_no, cr.bldg ";
 
+
             Statement stmt1 = newCon.createStatement();
 
             ResultSet rset1 = stmt1.executeQuery(query1);
@@ -142,7 +140,7 @@ public class Reports {
         System.out.print(studentDetailBanner);
 
         for(int i =1; i <= countTrips(); i++) {
-            String format = "|%1$-8s|%2$-12s|%3$-16s|%4$-10s|%5$-12s|%6$-5s|%7$-17s|%8$-4s|%9$-4s|%10$-4s|%11$-5s|%12$-5s|\n";
+            String format = "|%1$-8s|%2$-12s|%3$-16s|%4$-10s|%5$-12s|%6$-5s|%7$-17s|%8$-4s|%9$-4s|%10$-4s|%11$-5s|\n";
 
 
             String query1 = "SELECT  sc.first, sc.last, cr.name, t.resort, t.sun_date, t.city, t.state, cr.name, cr.rid, cr.unit_no, cr.bldg, sum(p.payment)AS PAID "
@@ -156,13 +154,13 @@ public class Reports {
             Statement stmt1 = newCon.createStatement();
             ResultSet rset1 = stmt1.executeQuery(query1);
             String table = "Trip " +i +"\n"
-                    +String.format(format, "FIRST","LAST","RESORT","DATE","CITY", "STATE", "CONDO", "ROOM", "UNIT", "BLDG", "PAID", "OWES")
-                    +String.format(format,"--------","------------","----------------","----------","------------", "-----","-----------------","----","----","----","-----", "-----");
+                    +String.format(format, "FIRST","LAST","RESORT","DATE","CITY", "STATE", "CONDO", "ROOM", "UNIT", "BLDG", "Owed")
+                    +String.format(format,"--------","------------","----------------","----------","------------", "-----","-----------------","----","----","----","-----");
             while (rset1.next()) {
                 table+= String.format(format, rset1.getString("First"), rset1.getString("LAST"),
                         rset1.getString("RESORT"), rset1.getDate("sun_date"),
                         rset1.getString("city"), rset1.getString("state"), rset1.getString("name"),
-                        rset1.getString("rid"), rset1.getString("unit_no"), rset1.getString("bldg"), rset1.getInt("PAID"), 100 - rset1.getInt("PAID"));
+                        rset1.getString("rid"), rset1.getString("unit_no"), rset1.getString("bldg"), rset1.getInt("PAID"));
             }table += "\n";
             System.out.print(table);
             // Release the statement and result set
@@ -171,4 +169,37 @@ public class Reports {
         }
     }
 
-}
+    public void financialDetail() throws SQLException{
+        String format = "|%1$-4s|%2$-18s|%3$-4s|%4$-4s|%5$-5s|%6$-10s|\n";
+        String condoDetailBanner =    "****************\n"
+                +"****************\n"
+                +"**Condo Detail**\n"
+                +"****************\n"
+                +"****************\n";
+        System.out.print(condoDetailBanner);
+        for(int i = 1; i <= countTrips(); i++ ){
+        	 String query1 = "SELECT  Trip.TID, Trip.Resort, Sum(p.payment) AS Paid, Count(p.RID) "
+                     +"FROM SkiClub sc inner join Condo_Assign ca on sc.MID = ca.MID "
+                     +"inner join Payment p on ca.mid = p.mid "
+                     +"inner join Condo_Reservation cr on p.RID = cr.RId "
+                     +"where  t.tid = " +i +" and p.rid = ca.rid "
+                     +"group by t.TID, t.Resort  ";
+
+
+            Statement stmt1 = newCon.createStatement();
+
+            ResultSet rset1 = stmt1.executeQuery(query1);
+            String table = "TRIP " +i +"\n"
+                    +String.format(format, "ROOM","NAME","UNIT","BLDG","COUNT","TOTAL PAID")
+                    +String.format(format,"----","------------------","----","----","-----","----------");;
+
+            while (rset1.next ()) {
+                table+= String.format(format, rset1.getString("Room"), rset1.getString("Name"), rset1.getString("unit_no"), rset1.getString("bldg"), rset1.getInt("roomCount"), rset1.getInt("reserPaid"));
+            }
+            table += "\n";
+            System.out.print(table);
+            // Release the statement and result set
+            stmt1.close();
+            rset1.close();
+        }
+    }
