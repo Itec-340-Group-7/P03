@@ -17,13 +17,14 @@ public class Reports {
 
     public void run() throws SQLException {
         newCon = dataSource.getConn();
-        tripDetail();
+        //  tripDetail();
         //  studentDetail();
+        condominiumDetail();
         dataSource.closeConn();
     }
     private int countTrips() throws SQLException {
-        String query =  "SELECT DISTINCT COUNT(TID) as tripCount "
-                +"FROM TRIP";
+        String query =  "SELECT COUNT(TID) as tripCount "
+                +"FROM TRIP ";
         int count = 0;
 
         Statement stmt1 = newCon.createStatement();
@@ -81,20 +82,34 @@ public class Reports {
         }
     }
     public void condominiumDetail() throws SQLException{
-
+        System.out.print(countTrips());
         for(int i = 1; i <= countTrips(); i++ ){
+            System.out.println("sdaf");
+            String query1 = "SELECT cr.rid as Room, cr.name, cr.unit_no, cr.bldg, count(p.rid) as roomCount, sum(p.payment) as reserPaid "
+                    + "FROM Condo_Assign ca "
+                    + "inner join Condo_Reservation cr on ca.RID = cr.RID "
+                    + "inner join SkiClub sc on ca.mid = sc.mid "
+                    + "inner join Payment p on ca.mid = p.mid and ca.rid = p.rid "
+                    + "WHERE cr.TID = " +i + " and p.mid = ca.mid "
+                    +"group by cr.rid, cr.name, cr.unit_no, cr.bldg ";
 
+
+            Statement stmt1 = newCon.createStatement();
+
+            ResultSet rset1 = stmt1.executeQuery(query1);
+
+            // String header1 = ("\tTRIP " +i +"\n" +"--Resort--Date--City--State--\n");
+            while (rset1.next ()) {
+                System.out.println(rset1.getString("Room")+" " +rset1.getInt("reserPaid"));
+
+            }
+            //   System.out.print(header1);
+            // Release the statement and result set
+            stmt1.close();
+            rset1.close();
         }
     }
     public void studentDetail() throws SQLException {
-        /******************/
-        /* JDBC Statement */
-        /******************/
-
-        System.out.println("\n");
-        System.out.println("--------------");
-        System.out.println("JDBC Statement");
-        System.out.println("--------------");
 
         String query1 = "SELECT distinct sc.first, sc.last, ca.RID, p.Payment, cr.TID, t.resort, t.sun_date, t.city, t.state, cr.unit_no, cr.bldg "
                 + "FROM SkiClub sc "
@@ -108,7 +123,6 @@ public class Reports {
                 + "cr.tid = t.tid "
                 + "Where first = 'Matt'";
 
-        //System.out.println("\nStatement: " + query1 + "\n");
 
         Statement stmt1 = newCon.createStatement ();
         ResultSet rset1 = stmt1.executeQuery(query1);
