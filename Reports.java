@@ -12,14 +12,13 @@ public class Reports {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     public void run() throws SQLException {
         newCon = dataSource.getConn();
-        //tripDetail();//finished
-        condominiumDetail();
-        //  studentDetail();
+        tripDetail();//finished
+        condominiumDetail(); //finished
+        studentDetail(); //finished
         dataSource.closeConn();
     }
     private int countTrips() throws SQLException {
@@ -131,32 +130,42 @@ public class Reports {
         }
     }
     public void studentDetail() throws SQLException {
+        String studentDetailBanner =    "******************\n"
+                +"******************\n"
+                +"**Student Detail**\n"
+                +"******************\n"
+                +"******************\n";
 
-        String query1 = "SELECT distinct sc.first, sc.last, ca.RID, p.Payment, cr.TID, t.resort, t.sun_date, t.city, t.state, cr.unit_no, cr.bldg "
-                + "FROM SkiClub sc "
-                + "inner join Condo_Assign ca "
-                + "on sc.MID = ca.MID "
-                + "inner join Payment p on "
-                + "ca.mid = p.mid "
-                + "inner join Condo_Reservation cr on "
-                + "p.RID = cr.RID "
-                + "inner join Trip t on "
-                + "cr.tid = t.tid "
-                + "Where first = 'Matt'";
+        System.out.print(studentDetailBanner);
+
+        for(int i =1; i <= countTrips(); i++) {
+            String format = "|%1$-8s|%2$-12s|%3$-16s|%4$-10s|%5$-12s|%6$-5s|%7$-17s|%8$-4s|%9$-4s|%10$-4s|%11$-5s|\n";
 
 
-        Statement stmt1 = newCon.createStatement ();
-        ResultSet rset1 = stmt1.executeQuery(query1);
-        while (rset1.next ()) {
-            System.out.println("Student Name: " + rset1.getString("first") + " " + rset1.getString("last")
-                    + "\nResort Information: " + rset1.getString("resort") + " " + rset1.getDate("sun_date") + " "
-                    + rset1.getString("city") + ", " + rset1.getString("state") + " "
-                    + "\nRoom Information: " + rset1.getString("RID") + " " + rset1.getString("unit_no")+ " " + rset1.getString("bldg") + " "
-                    + rset1.getString("tid") + " " + "\nPayment: " +  rset1.getString("payment")+ "\n\n");
+            String query1 = "SELECT  sc.first, sc.last, cr.name, t.resort, t.sun_date, t.city, t.state, cr.name, cr.rid, cr.unit_no, cr.bldg, sum(p.payment)AS PAID "
+                    +"FROM SkiClub sc inner join Condo_Assign ca on sc.MID = ca.MID "
+                    +"inner join Payment p on ca.mid = p.mid "
+                    +"inner join Condo_Reservation cr on p.RID = cr.RId "
+                    +"inner join Trip t on cr.tid = t.tid "
+                    +"where  cr.tid = " +i +" and sc.mid = ca.mid and p.mid = ca.mid  and p.rid = ca.rid "
+                    +"group by sc.first, sc.last, cr.name, t.resort, t.sun_date, t.city, t.state, cr.name, cr.rid, cr.unit_no, cr.bldg ";
+
+            Statement stmt1 = newCon.createStatement();
+            ResultSet rset1 = stmt1.executeQuery(query1);
+            String table = "Trip " +i +"\n"
+                    +String.format(format, "FIRST","LAST","RESORT","DATE","CITY", "STATE", "CONDO", "ROOM", "UNIT", "BLDG", "Owed")
+                    +String.format(format,"--------","------------","----------------","----------","------------", "-----","-----------------","----","----","----","-----");
+            while (rset1.next()) {
+                table+= String.format(format, rset1.getString("First"), rset1.getString("LAST"),
+                        rset1.getString("RESORT"), rset1.getDate("sun_date"),
+                        rset1.getString("city"), rset1.getString("state"), rset1.getString("name"),
+                        rset1.getString("rid"), rset1.getString("unit_no"), rset1.getString("bldg"), rset1.getInt("PAID"));
+            }table += "\n";
+            System.out.print(table);
+            // Release the statement and result set
+            stmt1.close();
+            rset1.close();
         }
-        // Release the statement and result set
-        stmt1.close();
-        rset1.close();
     }
 
 }
