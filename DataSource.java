@@ -3,8 +3,8 @@ package connection;
 import java.sql.*;
 
 public class DataSource {
-    private String user = "shorton6";
-    private String pass = "Itecpassword";
+    private String user = ""; //username here
+    private String pass = "";// password here
     private Connection conn;
 
     public DataSource() throws SQLException {
