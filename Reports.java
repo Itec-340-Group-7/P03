@@ -17,9 +17,9 @@ public class Reports {
 
     public void run() throws SQLException {
         newCon = dataSource.getConn();
-        //  tripDetail();
-        //  studentDetail();
+        //tripDetail();//finished
         condominiumDetail();
+        //  studentDetail();
         dataSource.closeConn();
     }
     private int countTrips() throws SQLException {
@@ -53,38 +53,57 @@ public class Reports {
     }
 
     public void tripDetail() throws SQLException {
+        String format = "|%1$-16s|%2$-10s|%3$-15s|%4$-5s|\n";
+        String format1 = "|%1$-8s|%2$-12s|%3$-15s|%4$-10s|\n";
+        String tripDetailBanner =    "***************\n"
+                +"***************\n"
+                +"**TRIP DETAIL**\n"
+                +"***************\n"
+                +"***************\n";
+        System.out.print(tripDetailBanner);
         for(int i = 1; i <= countTrips(); i++ ){
             String query1 = getQuery1(i);
             String query2 = getQuery2(i);
 
             Statement stmt1 = newCon.createStatement();
             ResultSet rset1 = stmt1.executeQuery(query1);
-            String header1 = ("\tTRIP " +i +"\n" +"--Resort--Date--City--State--\n");
+            String table = "TRIP " +i +"\n"
+                    + String.format(format, "Resort", "Date", "City", "State")
+                    +String.format(format,"----------------","----------","---------------","-----");
             while (rset1.next ()) {
-                header1 +=
-                        rset1.getString("Resort") +" " + rset1.getDate("Sun_date") +" " + rset1.getString("city") +" "  + rset1.getString("State") +"\n";
+                table +=
+                        String.format(format, rset1.getString("Resort"), rset1.getDate("Sun_date"), rset1.getString("city") , rset1.getString("State"));
             }
-            System.out.print(header1);
+            table += "\n";
+            System.out.print(table);
             // Release the statement and result set
             stmt1.close();
             rset1.close();
 
             Statement stmt2 = newCon.createStatement();
             ResultSet rset2 = stmt2.executeQuery(query2);
-
+            String table2 = String.format(format1,"First","Last","Name","Total Paid")
+                    +String.format(format1,"--------","------------","---------------","----------");
             while (rset2.next ()) {
-                System.out.print(
-                        rset2.getString("first") +" "+rset2.getString("last") +" " +rset2.getString("name") +" " +rset2.getString("totalPaid")+"\n"
-                );
+                table2 +=
+                        String.format(format1, rset2.getString("first"), rset2.getString("last"), rset2.getString("name"), rset2.getInt("totalPaid"));
             }
+            table2 += "\n";
+            System.out.print(table2);
             stmt2.close();
             rset2.close();
         }
     }
     public void condominiumDetail() throws SQLException{
-        System.out.print(countTrips());
+        String format = "|%1$-4s|%2$-18s|%3$-4s|%4$-4s|%5$-5s|%6$-10s|\n";
+        String condoDetailBanner =    "****************\n"
+                +"****************\n"
+                +"**Condo Detail**\n"
+                +"****************\n"
+                +"****************\n";
+        System.out.print(condoDetailBanner);
         for(int i = 1; i <= countTrips(); i++ ){
-            System.out.println("sdaf");
+
             String query1 = "SELECT cr.rid as Room, cr.name, cr.unit_no, cr.bldg, count(p.rid) as roomCount, sum(p.payment) as reserPaid "
                     + "FROM Condo_Assign ca "
                     + "inner join Condo_Reservation cr on ca.RID = cr.RID "
@@ -97,13 +116,15 @@ public class Reports {
             Statement stmt1 = newCon.createStatement();
 
             ResultSet rset1 = stmt1.executeQuery(query1);
+            String table = "TRIP " +i +"\n"
+                    +String.format(format, "ROOM","NAME","UNIT","BLDG","COUNT","TOTAL PAID")
+                    +String.format(format,"----","------------------","----","----","-----","----------");;
 
-            // String header1 = ("\tTRIP " +i +"\n" +"--Resort--Date--City--State--\n");
             while (rset1.next ()) {
-                System.out.println(rset1.getString("Room")+" " +rset1.getInt("reserPaid"));
-
+                table+= String.format(format, rset1.getString("Room"), rset1.getString("Name"), rset1.getString("unit_no"), rset1.getString("bldg"), rset1.getInt("roomCount"), rset1.getInt("reserPaid"));
             }
-            //   System.out.print(header1);
+            table += "\n";
+            System.out.print(table);
             // Release the statement and result set
             stmt1.close();
             rset1.close();
